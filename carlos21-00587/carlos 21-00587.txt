@@ -1,0 +1,31 @@
+                         Inventory Management System Documentation
+
+
+
+Overview
+
+The Inventory Management System is a desktop application developed in Java using Swing for managing product inventory, suppliers, and generating reports. It includes several key design patterns to improve maintainability, scalability, and flexibility. These patterns are implemented to ensure that the system is modular, easily extendable, and follows object-oriented principles.
+
+1. Singleton Pattern
+The Singleton Pattern ensures that a class has only one instance and provides a global point of access to that instance. This pattern is used for managing shared resources where only one instance of a class should be used throughout the application.
+
+2. Factory Method Pattern
+The Factory Method Pattern allows for the creation of objects without specifying the exact class of object that will be created. This pattern is used to instantiate products based on their category (Electronics, Furniture, Groceries) while keeping the instantiation logic separate from the rest of the code.
+
+3. Observer Pattern
+The Observer Pattern defines a one-to-many dependency relationship between objects, allowing one object (the subject) to notify a set of dependent objects (observers) automatically of any state changes, without needing to know who or what those objects are.
+
+4. Strategy Pattern
+The Strategy Pattern is used to define a family of algorithms and make them interchangeable. It allows a class to delegate its behavior to an instance of one of several possible algorithms or strategies.
+
+5. Composite Pattern
+The Composite Pattern is used to treat individual objects and composites of objects uniformly. This pattern is typically used to represent part-whole hierarchies.
+
+
+6. Abstract Factory Pattern
+The Abstract Factory Pattern allows for the creation of families of related or dependent objects without specifying their concrete classes. In this application, the ProductFactory class serves as an abstract factory for creating different types of products
+
+
+Conclusion
+
+The Inventory Management System uses a combination of well-known design patterns to improve flexibility, maintainability, and scalability. These patterns allow for easy extension of functionality, such as adding new product categories or integrating with other systems in the future. The design is modular and easily adaptable to different business needs.
