@@ -1,0 +1,318 @@
+                               Inventory Management System
+
+                                           code 
+
+
+
+
+package JavaApplication3;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.*;
+import java.util.List;
+
+class StockManager {
+    private static StockManager instance;
+    private final Map<String, Product> inventory = new HashMap<>();
+
+    private StockManager() { }
+
+    public static synchronized StockManager getInstance() {
+        if (instance == null) {
+            instance = new StockManager();
+        }
+        return instance;
+    }
+
+    public void addProduct(Product product) {
+        inventory.put(product.getName(), product);
+    }
+
+    public Collection<Product> getInventory() {
+        return inventory.values();
+    }
+}
+
+class ReportingModule {
+    private static ReportingModule instance;
+
+    private ReportingModule() { }
+
+    public static synchronized ReportingModule getInstance() {
+        if (instance == null) {
+            instance = new ReportingModule();
+        }
+        return instance;
+    }
+
+    // Method to generate report and update the reportArea
+    public void generateReport(JTextArea reportArea) {
+        StringBuilder reportContent = new StringBuilder();
+        
+        if (StockManager.getInstance().getInventory().isEmpty()) {
+            reportContent.append("No products in inventory.\n");
+        } else {
+            StockManager.getInstance().getInventory().forEach(product -> {
+                reportContent.append("Product Details:\n");
+                reportContent.append("Name: ").append(product.getName()).append("\n");
+                reportContent.append("Category: ").append(product.getClass().getSimpleName()).append("\n");
+                reportContent.append("Price: $").append(product.getPrice()).append("\n");
+                reportContent.append("Supplier: ").append(product.getSupplier()).append("\n");
+                reportContent.append("------------------------------\n");
+            });
+        }
+
+        reportArea.setText(reportContent.toString());
+    }
+}
+
+class Supplier {
+    private final String name;
+    private final String type;
+
+    public Supplier(String name, String type) {
+        this.name = name;
+        this.type = type;
+    }
+
+    public String getName() { return name; }
+    public String getType() { return type; }
+
+    @Override
+    public String toString() {
+        return name + " (" + type + ")";
+    }
+}
+
+abstract class Product {
+    private final String name;
+    private final double price;
+    private final Supplier supplier;
+
+    public Product(String name, double price, Supplier supplier) {
+        this.name = name;
+        this.price = price;
+        this.supplier = supplier;
+    }
+
+    public String getName() { return name; }
+    public double getPrice() { return price; }
+    public Supplier getSupplier() { return supplier; }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " - Name: " + name + ", Price: $" + price + ", Supplier: " + supplier;
+    }
+}
+
+class Electronics extends Product {
+    public Electronics(String name, double price, Supplier supplier) { super(name, price, supplier); }
+}
+
+class Furniture extends Product {
+    public Furniture(String name, double price, Supplier supplier) { super(name, price, supplier); }
+}
+
+class Groceries extends Product {
+    public Groceries(String name, double price, Supplier supplier) { super(name, price, supplier); }
+}
+
+class ProductFactory {
+    public static Product createProduct(String category, String name, double price, Supplier supplier) {
+        switch (category.toLowerCase()) {
+            case "electronics": return new Electronics(name, price, supplier);
+            case "furniture": return new Furniture(name, price, supplier);
+            case "groceries": return new Groceries(name, price, supplier);
+            default: throw new IllegalArgumentException("Unknown product category: " + category);
+        }
+    }
+}
+
+public class JavaApplaication3 {
+    private static JFrame mainFrame;
+    private static JTextArea inventoryArea;
+    private static JTextArea reportArea;
+    private static List<Supplier> suppliers = new ArrayList<>();
+    private static JComboBox<String> categoryComboBox;
+    private static JComboBox<Supplier> supplierComboBox;
+    private static JPanel cardPanel;  
+    private static CardLayout cardLayout;
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            mainFrame = new JFrame("Stock Management System");
+            mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            mainFrame.setSize(800, 500);
+            mainFrame.setLayout(new BorderLayout());
+
+            // CardLayout to manage different views
+            cardLayout = new CardLayout();
+            cardPanel = new JPanel(cardLayout);
+
+            // Inventory Display Area
+            inventoryArea = new JTextArea();
+            inventoryArea.setEditable(false);
+            inventoryArea.setFont(new Font("Arial", Font.PLAIN, 16));  
+            inventoryArea.setBackground(new Color(230, 230, 255));
+
+            // Report Display Area
+            reportArea = new JTextArea();
+            reportArea.setEditable(false);
+            reportArea.setFont(new Font("Arial", Font.PLAIN, 16));  
+            reportArea.setBackground(new Color(255, 255, 204));
+
+            JPanel inventoryPanel = new JPanel(new BorderLayout());
+            inventoryPanel.add(new JScrollPane(inventoryArea), BorderLayout.CENTER);
+            JPanel reportPanel = new JPanel(new BorderLayout());
+            reportPanel.add(new JScrollPane(reportArea), BorderLayout.CENTER);
+
+            cardPanel.add(inventoryPanel, "Inventory");
+            cardPanel.add(reportPanel, "Report");
+
+            mainFrame.add(cardPanel, BorderLayout.CENTER);
+
+            // Control Panel
+            JPanel controlPanel = new JPanel();
+            controlPanel.setLayout(new GridLayout(5, 1));
+
+            JButton addProductButton = new JButton("Add Product");
+            JButton viewInventoryButton = new JButton("View Inventory");
+            JButton generateReportButton = new JButton("Generate Report");
+            JButton manageSuppliersButton = new JButton("Manage Suppliers");
+
+            controlPanel.add(addProductButton);
+            controlPanel.add(viewInventoryButton);
+            controlPanel.add(generateReportButton);
+            controlPanel.add(manageSuppliersButton);
+
+            // Adding hover effects on buttons
+            addHoverEffect(addProductButton);
+            addHoverEffect(viewInventoryButton);
+            addHoverEffect(generateReportButton);
+            addHoverEffect(manageSuppliersButton);
+
+            mainFrame.add(controlPanel, BorderLayout.WEST);
+
+            addProductButton.addActionListener(e -> showAddProductWindow());
+
+            viewInventoryButton.addActionListener(e -> {
+                showInventory();
+                cardLayout.show(cardPanel, "Inventory");
+            });
+
+            generateReportButton.addActionListener(e -> {
+                ReportingModule.getInstance().generateReport(reportArea);
+                cardLayout.show(cardPanel, "Report");
+            });
+
+            manageSuppliersButton.addActionListener(e -> showSupplierManagementWindow());
+
+            // Initial Dummy Suppliers
+            suppliers.add(new Supplier("Local Supplier 1", "Local"));
+            suppliers.add(new Supplier("International Supplier 1", "International"));
+
+            mainFrame.setVisible(true);
+        });
+    }
+
+    // Hover effect for buttons
+    private static void addHoverEffect(JButton button) {
+        button.setBackground(new Color(255, 204, 204));  
+        button.setFocusPainted(false);  
+        button.setFont(new Font("Arial", Font.BOLD, 16));
+        button.setForeground(Color.DARK_GRAY);
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(255, 102, 102));  // Change color on hover
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(255, 204, 204));  // Revert to original color
+            }
+        });
+    }
+
+    private static void showAddProductWindow() {
+        JFrame addProductFrame = new JFrame("Add Product");
+        addProductFrame.setSize(400, 300);
+        addProductFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        addProductFrame.setLayout(new GridLayout(5, 2));
+
+        categoryComboBox = new JComboBox<>(new String[] { "Electronics", "Furniture", "Groceries" });
+        JTextField nameField = new JTextField();
+        JTextField priceField = new JTextField();
+
+        supplierComboBox = new JComboBox<>(suppliers.toArray(new Supplier[0]));
+        JButton submitButton = new JButton("Add Product");
+
+        addProductFrame.add(new JLabel("Category: "));
+        addProductFrame.add(categoryComboBox);
+        addProductFrame.add(new JLabel("Name: "));
+        addProductFrame.add(nameField);
+        addProductFrame.add(new JLabel("Price: "));
+        addProductFrame.add(priceField);
+        addProductFrame.add(new JLabel("Supplier: "));
+        addProductFrame.add(supplierComboBox);
+        addProductFrame.add(submitButton);
+
+        submitButton.addActionListener(e -> {
+            String category = (String) categoryComboBox.getSelectedItem();
+            String name = nameField.getText();
+            double price = Double.parseDouble(priceField.getText());
+            Supplier supplier = (Supplier) supplierComboBox.getSelectedItem();
+
+            if (name.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(addProductFrame, "Product name cannot be empty!", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                Product product = ProductFactory.createProduct(category, name, price, supplier);
+                StockManager.getInstance().addProduct(product);
+                addProductFrame.dispose();
+            }
+        });
+
+        addProductFrame.setVisible(true);
+    }
+
+    private static void showInventory() {
+        inventoryArea.setText("");
+        StockManager.getInstance().getInventory().forEach(product -> inventoryArea.append(product + "\n"));
+    }
+
+    private static void showSupplierManagementWindow() {
+        JFrame supplierFrame = new JFrame("Manage Suppliers");
+        supplierFrame.setSize(400, 300);
+        supplierFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        supplierFrame.setLayout(new GridLayout(3, 2));
+
+        JTextField supplierNameField = new JTextField();
+        JComboBox<String> supplierTypeComboBox = new JComboBox<>(new String[] { "Local", "International" });
+        JButton addSupplierButton = new JButton("Add Supplier");
+
+        supplierFrame.add(new JLabel("Supplier Name: "));
+        supplierFrame.add(supplierNameField);
+        supplierFrame.add(new JLabel("Supplier Type: "));
+        supplierFrame.add(supplierTypeComboBox);
+        supplierFrame.add(addSupplierButton);
+
+        addSupplierButton.addActionListener(e -> {
+            String name = supplierNameField.getText();
+            if (name.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(supplierFrame, "Supplier name cannot be empty!", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                String type = (String) supplierTypeComboBox.getSelectedItem();
+                Supplier supplier = new Supplier(name, type);
+                suppliers.add(supplier);
+                supplierComboBox.addItem(supplier);
+                supplierFrame.dispose();
+            }
+        });
+
+        supplierFrame.setVisible(true);
+    }
+}
+
+
